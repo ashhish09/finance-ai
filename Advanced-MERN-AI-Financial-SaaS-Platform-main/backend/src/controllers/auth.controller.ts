@@ -34,3 +34,11 @@ export const loginController = asyncHandler(
     });
   }
 );
+
+export const logoutController = asyncHandler(
+  async (_req: Request, res: Response) => {
+    return res.status(HTTPSTATUS.OK).json({
+      message: "User logged out successfully",
+    });
+  }
+);
