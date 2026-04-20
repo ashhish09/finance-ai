@@ -30,11 +30,12 @@ const QUICK_PROMPTS = [
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmtUSD = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+// 🇮🇳 UPDATED: Full digits with rupee, no rounding
+const fmtINR = (n: number) =>
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
 
-const fmtUSD2 = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+const fmtINR2 = (n: number) =>
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
 // ─── Rich Message Renderer ────────────────────────────────────────────────────
 function RichMessage({ text, modeColor }: { text: string; modeColor: string }) {
@@ -330,7 +331,7 @@ function FeatureCard({
         ) : (
           <>
             <p style={{ margin: "0 0 4px", fontSize: 28, fontWeight: 700, color: accent }}>
-              {typeof value === "number" ? fmtUSD(value) : value}
+              {typeof value === "number" ? fmtINR(value) : value}
             </p>
             {subtitle && (
               <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
@@ -561,7 +562,7 @@ function LoanCalculator({ modeColor }: { modeColor: string }) {
           ⚙️ Loan Parameters
         </p>
         <Slider label="Loan Amount" value={principal} min={10000} max={5000000} step={5000}
-          onChange={setPrincipal} fmt={(v: number) => fmtUSD(v)} />
+          onChange={setPrincipal} fmt={(v: number) => fmtINR(v)} />
         <Slider label="Annual Interest Rate" value={rate} min={1} max={30} step={0.1}
           onChange={setRate} fmt={(v: number) => `${v.toFixed(1)}%`} />
         <Slider label="Tenure (months)" value={tenure} min={6} max={360} step={6}
@@ -582,19 +583,19 @@ function LoanCalculator({ modeColor }: { modeColor: string }) {
         <FeatureCard 
           icon="💳" 
           title="Monthly EMI" 
-          value={fmtUSD2(emi)} 
+          value={fmtINR2(emi)} 
           accent="#60a5fa"
         />
         <FeatureCard 
           icon="📊" 
           title="Total Interest" 
-          value={fmtUSD(totalInterest)} 
+          value={fmtINR(totalInterest)} 
           accent="#f87171"
         />
         <FeatureCard 
           icon="💰" 
           title="Total Payable" 
-          value={fmtUSD(totalPayable)} 
+          value={fmtINR(totalPayable)} 
           accent="#fbbf24"
         />
         <FeatureCard 
@@ -630,10 +631,10 @@ function LoanCalculator({ modeColor }: { modeColor: string }) {
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, position: "relative", zIndex: 1 }}>
             {[
-              { label: "Penalty Charges", value: fmtUSD2(penaltyAmount) },
-              { label: "Extra Interest", value: fmtUSD2(missedInterest) },
-              { label: "Total Extra Cost", value: fmtUSD2(penaltyAmount + missedInterest) },
-              { label: "New Total Cost", value: fmtUSD(totalCostIfMissed) },
+              { label: "Penalty Charges", value: fmtINR2(penaltyAmount) },
+              { label: "Extra Interest", value: fmtINR2(missedInterest) },
+              { label: "Total Extra Cost", value: fmtINR2(penaltyAmount + missedInterest) },
+              { label: "New Total Cost", value: fmtINR(totalCostIfMissed) },
             ].map(({ label, value }) => (
               <div key={label} style={{
                 background: "rgba(248,113,113,0.08)",
@@ -675,10 +676,10 @@ function LoanCalculator({ modeColor }: { modeColor: string }) {
               {schedule.map(row => (
                 <tr key={row.month} style={{ borderBottom: "0.5px solid rgba(255,255,255,0.04)" }}>
                   <td style={{ padding: "12px 18px", textAlign: "right", color: modeColor, fontWeight: 700 }}>{row.month}</td>
-                  <td style={{ padding: "12px 18px", textAlign: "right", color: "rgba(255,255,255,0.6)" }}>{fmtUSD2(row.emi)}</td>
-                  <td style={{ padding: "12px 18px", textAlign: "right", color: "#34d399", fontWeight: 600 }}>{fmtUSD2(row.principal)}</td>
-                  <td style={{ padding: "12px 18px", textAlign: "right", color: "#f87171", fontWeight: 600 }}>{fmtUSD2(row.interest)}</td>
-                  <td style={{ padding: "12px 18px", textAlign: "right", color: "rgba(255,255,255,0.4)" }}>{fmtUSD2(row.balance)}</td>
+                  <td style={{ padding: "12px 18px", textAlign: "right", color: "rgba(255,255,255,0.6)" }}>{fmtINR2(row.emi)}</td>
+                  <td style={{ padding: "12px 18px", textAlign: "right", color: "#34d399", fontWeight: 600 }}>{fmtINR2(row.principal)}</td>
+                  <td style={{ padding: "12px 18px", textAlign: "right", color: "#f87171", fontWeight: 600 }}>{fmtINR2(row.interest)}</td>
+                  <td style={{ padding: "12px 18px", textAlign: "right", color: "rgba(255,255,255,0.4)" }}>{fmtINR2(row.balance)}</td>
                 </tr>
               ))}
             </tbody>
@@ -900,7 +901,7 @@ const AiCoach = () => {
                         icon="🛒"
                         title="Top Spend"
                         value={insights.topCategory.name}
-                        subtitle={fmtUSD(insights.topCategory.amount)}
+                        subtitle={fmtINR(insights.topCategory.amount)}
                         accent="#fbbf24"
                       />
                     )}

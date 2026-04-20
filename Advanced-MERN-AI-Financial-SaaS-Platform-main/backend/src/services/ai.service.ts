@@ -33,11 +33,12 @@ export const generateAiInsightsService = async (userId: string) => {
   const expenseRatio = totalIncome ? (totalExpense / totalIncome) * 100 : 0;
   const savingsRate = totalIncome ? (savings / totalIncome) * 100 : 0;
 
-  // 🇮🇳 INR formatter
+  // 🇮🇳 UPDATED: Full digits with rupee formatting (no rounding to thousands)
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
+      minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(n);
 

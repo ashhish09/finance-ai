@@ -25,13 +25,13 @@ export const aiChatService = async (
   const savings = income - expense;
   const savingsRate = income ? ((savings / income) * 100).toFixed(1) : "0";
 
-  // 🇮🇳 changed to INR
+  // 🇮🇳 UPDATED: Full digits with rupee formatting
   let systemPrompt = `
 You are a ${mode} AI Financial Coach named "Finora AI".
 
 Rules:
 - Keep responses concise (3-4 sentences)
-- Use Indian Rupee (₹) currency ONLY
+- Use Indian Rupee (₹) currency ONLY - show full amounts like ₹${income.toLocaleString("en-IN")} not rounded
 - Be practical and based on real user data
 - Help improve financial habits
 `;
