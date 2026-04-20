@@ -8,12 +8,10 @@ export const aiChatService = async (
   message: string,
   mode: string = "friendly"
 ) => {
-  // 1. Memory (last 10 chats)
   const history = await ChatModel.find({ userId })
     .sort({ createdAt: -1 })
     .limit(10);
 
-  // 2. Financial data — amounts are stored as-is (dollars), no division needed
   const transactions = await TransactionModel.find({ userId });
 
   let income = 0;
@@ -27,24 +25,24 @@ export const aiChatService = async (
   const savings = income - expense;
   const savingsRate = income ? ((savings / income) * 100).toFixed(1) : "0";
 
-  // 3. Personality system
+  // 🇮🇳 changed to INR
   let systemPrompt = `
 You are a ${mode} AI Financial Coach named "Finora AI".
 
 Rules:
-- Keep responses concise and actionable (max 3-4 sentences)
-- Use USD ($) currency
-- Be practical and specific to the user's actual numbers
-- Help user improve money habits based on their real data
-- Reference their actual income/expense/savings when relevant
+- Keep responses concise (3-4 sentences)
+- Use Indian Rupee (₹) currency ONLY
+- Be practical and based on real user data
+- Help improve financial habits
 `;
 
   if (mode === "strict") {
-    systemPrompt += "\nBe direct, strict, and disciplined. No sugar-coating.";
+    systemPrompt += "\nBe strict, disciplined, no sugar coating.";
   }
+
   if (mode === "investor") {
     systemPrompt +=
-      "\nFocus on wealth-building: SIP, index funds, stocks, and long-term growth strategies.";
+      "\nFocus on SIP, mutual funds, stocks, long-term wealth building in India.";
   }
 
   const memory = history
@@ -53,10 +51,10 @@ Rules:
     .join("\n");
 
   const context = `
-User's Financial Snapshot:
-- Monthly Income: $${income.toLocaleString()}
-- Monthly Expense: $${expense.toLocaleString()}
-- Net Savings: $${savings.toLocaleString()}
+User Financial Snapshot:
+- Monthly Income: ₹${income.toLocaleString("en-IN")}
+- Monthly Expense: ₹${expense.toLocaleString("en-IN")}
+- Net Savings: ₹${savings.toLocaleString("en-IN")}
 - Savings Rate: ${savingsRate}%
 `;
 
@@ -70,7 +68,8 @@ ${memory}
 
 User: ${message}
 
-Reply as Finora AI:`;
+Reply as Finora AI:
+`;
 
   try {
     return await geminiChatService(prompt);

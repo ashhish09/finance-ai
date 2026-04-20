@@ -11,7 +11,7 @@ export const generateAiInsightsService = async (userId: string) => {
       score: 0,
       insights: [
         "📊 Start adding transactions to unlock AI insights",
-        "💡 AI will track your budget, savings, and spending patterns",
+        "💡 AI will track your income, expenses, and savings in ₹",
       ],
     };
   }
@@ -33,47 +33,51 @@ export const generateAiInsightsService = async (userId: string) => {
   const expenseRatio = totalIncome ? (totalExpense / totalIncome) * 100 : 0;
   const savingsRate = totalIncome ? (savings / totalIncome) * 100 : 0;
 
+  // 🇮🇳 INR formatter
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", {
+    new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: "USD",
+      currency: "INR",
       maximumFractionDigits: 0,
     }).format(n);
 
   const insights: string[] = [];
 
-  // 1. BUDGETING
+  // Budget check
   if (totalExpense > totalIncome * 0.5) {
-    insights.push("⚠️ You exceeded the 50% budget rule — spending is too high");
+    insights.push("⚠️ You exceeded the 50% budget rule — spending too high");
   } else {
     insights.push("✅ Your budget is well managed");
   }
 
-  // 2. EXPENSE & INCOME
+  // Income & Expense
   insights.push(`📊 Total Expense: ${fmt(totalExpense)}`);
   insights.push(`💰 Total Income: ${fmt(totalIncome)}`);
 
-  // 3. SAVINGS ANALYSIS
+  // Savings
   if (savingsRate > 20) {
-    insights.push(`🎯 Excellent! You are saving ${savingsRate.toFixed(1)}% of your income`);
+    insights.push(`🎯 Great! You save ${savingsRate.toFixed(1)}% of income`);
   } else {
-    insights.push("💡 Try to save at least 20% of your income");
+    insights.push("💡 Try to save at least 20% of income");
   }
 
-  // 4. TOP SPENDING CATEGORY
-  const topCategory = Object.entries(categoryMap).sort((a, b) => b[1] - a[1])[0];
+  // Top category
+  const topCategory = Object.entries(categoryMap).sort(
+    (a, b) => b[1] - a[1]
+  )[0];
+
   if (topCategory) {
     insights.push(
       `📌 Highest spending: ${topCategory[0]} (${fmt(topCategory[1])})`
     );
   }
 
-  // 5. ALERTS
+  // Alert
   if (expenseRatio > 80) {
-    insights.push("🚨 ALERT: You are spending more than 80% of your income");
+    insights.push("🚨 ALERT: You are spending more than 80% of income");
   }
 
-  // 6. SCORE CALCULATION
+  // Score
   let score = 100;
   if (expenseRatio > 80) score -= 30;
   if (savingsRate < 20) score -= 20;
@@ -82,22 +86,22 @@ export const generateAiInsightsService = async (userId: string) => {
 
   insights.push(`📈 Financial Score: ${score}/100`);
 
-  // 7. INVESTMENT INSIGHT
+  // Investment
   if (score > 70) {
-    insights.push("📈 You are ready for investments — consider index funds or SIPs");
+    insights.push("📈 You are ready for SIPs or index funds in India");
   } else {
-    insights.push("💡 Focus on growing your savings before investing");
+    insights.push("💡 Focus on saving before investing");
   }
 
-  // 8. GOAL SETTING
+  // Goal
   const goal = totalIncome * 0.3;
   insights.push(`🎯 Recommended monthly savings goal: ${fmt(goal)}`);
 
-  // 9. SPENDING PATTERN
-  insights.push(`📊 You spend ${expenseRatio.toFixed(1)}% of your income`);
+  // Pattern
+  insights.push(`📊 You spend ${expenseRatio.toFixed(1)}% of income`);
 
-  // 10. TIP
-  insights.push("📰 Tip: Diversify with index funds & ETFs for long-term wealth growth");
+  // Tip
+  insights.push("📰 Tip: Diversify with mutual funds & SIPs for wealth growth");
 
   return {
     summary: {
