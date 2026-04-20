@@ -13,63 +13,66 @@ export const processRecurringTransactions = async () => {
       nextRecurringDate: { $lte: now },
     }).cursor();
 
-    console.log("Starting recurring proccess");
+    console.log("Starting recurring process");
 
     for await (const tx of transactionCursor) {
+      if (!tx.nextRecurringDate || !tx.recurringInterval) {
+        failedCount++;
+        continue;
+      }
+
       const nextDate = calculateNextOccurrence(
-        tx.nextRecurringDate!,
-        tx.recurringInterval!
+        tx.nextRecurringDate,
+        tx.recurringInterval
       );
 
       const session = await mongoose.startSession();
-      try {
-        await session.withTransaction(
-          async () => {
-            // console.log(tx, "transaction");
-            await TransactionModel.create(
-              [
-                {
-                  ...tx.toObject(),
-                  _id: new mongoose.Types.ObjectId(),
-                  title: `Recurring - ${tx.title}`,
-                  date: tx.nextRecurringDate,
-                  isRecurring: false,
-                  nextRecurringDate: null,
-                  recurringInterval: null,
-                  lastProcessed: null,
-                  createdAt: undefined,
-                  updatedAt: undefined,
-                },
-              ],
-              { session }
-            );
 
-            await TransactionModel.updateOne(
-              { _id: tx._id },
+      try {
+        await session.withTransaction(async () => {
+          await TransactionModel.create(
+            [
               {
-                $set: {
-                  nextRecurringDate: nextDate,
-                  lastProcessed: now,
-                },
+                ...tx.toObject(),
+                _id: new mongoose.Types.ObjectId(),
+                title: `Recurring - ${tx.title}`,
+                date: tx.nextRecurringDate,
+                isRecurring: false,
+
+                // ✅ FIXED (no nulls)
+                nextRecurringDate: undefined,
+                recurringInterval: undefined,
+                lastProcessed: undefined,
+
+                createdAt: undefined,
+                updatedAt: undefined,
               },
-              { session }
-            );
-          },
-          {
-            maxCommitTimeMS: 20000,
-          }
-        );
+            ],
+            { session }
+          );
+
+          await TransactionModel.updateOne(
+            { _id: tx._id },
+            {
+              $set: {
+                nextRecurringDate: nextDate,
+                lastProcessed: now,
+              },
+            },
+            { session }
+          );
+        });
 
         processedCount++;
       } catch (error: any) {
         failedCount++;
-        console.log(`Failed reccurring tx: ${tx._id}`, error);
+        console.log(`Failed recurring tx: ${tx._id}`, error);
       } finally {
         await session.endSession();
       }
     }
 
-    console.log(`✅Processed: ${processedCount} transaction`);
+    console.log(`✅ Processed: ${processedCount} transaction`);
     console.log(`❌ Failed: ${failedCount} transaction`);
 
     return {
@@ -78,7 +81,7 @@ export const processRecurringTransactions = async () => {
       failedCount,
     };
   } catch (error: any) {
-    console.error("Error occur processing transaction", error);
+    console.error("Error occurred processing transaction", error);
 
     return {
       success: false,

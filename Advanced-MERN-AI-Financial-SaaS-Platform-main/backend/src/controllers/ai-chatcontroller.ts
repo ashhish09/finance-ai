@@ -22,7 +22,7 @@ export const aiChatController = asyncHandler(
       });
     }
 
-    // save user msg
+    // ✅ Save user message
     await ChatModel.create({
       userId: user._id,
       role: "user",
@@ -30,10 +30,15 @@ export const aiChatController = asyncHandler(
       mode,
     });
 
-    // AI reply
-    const reply = await aiChatService(user._id, message, mode);
+    // ✅ AI reply (fixed type issue)
+    const rawReply = await aiChatService(user._id, message, mode);
 
-    // save AI msg
+    const reply =
+      typeof rawReply === "string"
+        ? rawReply
+        : rawReply.map((c: any) => c.text || "").join(" ");
+
+    // ✅ Save AI message
     await ChatModel.create({
       userId: user._id,
       role: "assistant",

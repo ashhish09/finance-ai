@@ -37,9 +37,9 @@ export const createTransactionService = async (
     category: body.category,
     amount: Number(body.amount),
     isRecurring: body.isRecurring || false,
-    recurringInterval: body.recurringInterval || null,
+    recurringInterval: body.recurringInterval || undefined,
     nextRecurringDate,
-    lastProcessed: null,
+    lastProcessed: undefined,
   });
 
   return transaction;
@@ -75,11 +75,8 @@ export const getAllTransactionService = async (
   }
 
   if (recurringStatus) {
-    if (recurringStatus === "RECURRING") {
-      filterConditions.isRecurring = true;
-    } else if (recurringStatus === "NON_RECURRING") {
-      filterConditions.isRecurring = false;
-    }
+    filterConditions.isRecurring =
+      recurringStatus === "RECURRING" ? true : false;
   }
 
   const { pageSize, pageNumber } = pagination;
@@ -115,6 +112,7 @@ export const getTransactionByIdService = async (
     _id: transactionId,
     userId,
   });
+
   if (!transaction) throw new NotFoundException("Transaction not found");
 
   return transaction;
@@ -128,6 +126,7 @@ export const duplicateTransactionService = async (
     _id: transactionId,
     userId,
   });
+
   if (!transaction) throw new NotFoundException("Transaction not found");
 
   const duplicated = await TransactionModel.create({
@@ -156,6 +155,7 @@ export const updateTransactionService = async (
     _id: transactionId,
     userId,
   });
+
   if (!existingTransaction)
     throw new NotFoundException("Transaction not found");
 
@@ -166,7 +166,7 @@ export const updateTransactionService = async (
     body.date !== undefined ? new Date(body.date) : existingTransaction.date;
 
   const recurringInterval =
-    body.recurringInterval || existingTransaction.recurringInterval;
+    body.recurringInterval ?? existingTransaction.recurringInterval;
 
   let nextRecurringDate: Date | undefined;
 
@@ -193,21 +193,18 @@ export const updateTransactionService = async (
   });
 
   await existingTransaction.save();
-
-  return;
 };
 
 export const deleteTransactionService = async (
   userId: string,
   transactionId: string
 ) => {
-  const deleted = await TransactionModel.findByIdAndDelete({
+  const deleted = await TransactionModel.findOneAndDelete({
     _id: transactionId,
     userId,
   });
-  if (!deleted) throw new NotFoundException("Transaction not found");
 
-  return;
+  if (!deleted) throw new NotFoundException("Transaction not found");
 };
 
 export const bulkDeleteTransactionService = async (
@@ -220,10 +217,10 @@ export const bulkDeleteTransactionService = async (
   });
 
   if (result.deletedCount === 0)
-    throw new NotFoundException("No transations found");
+    throw new NotFoundException("No transactions found");
 
   return {
-    sucess: true,
+    success: true,
     deletedCount: result.deletedCount,
   };
 };
@@ -239,9 +236,9 @@ export const bulkTransactionService = async (
           ...tx,
           userId,
           isRecurring: false,
-          nextRecurringDate: null,
-          recurringInterval: null,
-          lastProcesses: null,
+          nextRecurringDate: undefined,
+          recurringInterval: undefined,
+          lastProcessed: undefined,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -267,16 +264,16 @@ export const scanReceiptService = async (
   if (!file) throw new BadRequestException("No file uploaded");
 
   try {
-    if (!file.path) throw new BadRequestException("failed to upload file");
-
-    console.log(file.path);
+    if (!file.path) throw new BadRequestException("Failed to upload file");
 
     const responseData = await axios.get(file.path, {
       responseType: "arraybuffer",
     });
+
     const base64String = Buffer.from(responseData.data).toString("base64");
 
-    if (!base64String) throw new BadRequestException("Could not process file");
+    if (!base64String)
+      throw new BadRequestException("Could not process file");
 
     const result = await genAI.models.generateContent({
       model: genAIModel,
@@ -296,15 +293,14 @@ export const scanReceiptService = async (
     const response = result.text;
     const cleanedText = response?.replace(/```(?:json)?\n?/g, "").trim();
 
-    if (!cleanedText)
-      return {
-        error: "Could not read reciept  content",
-      };
+    if (!cleanedText) {
+      return { error: "Could not read receipt content" };
+    }
 
     const data = JSON.parse(cleanedText);
 
     if (!data.amount || !data.date) {
-      return { error: "Reciept missing required information" };
+      return { error: "Receipt missing required information" };
     }
 
     return {
@@ -318,6 +314,6 @@ export const scanReceiptService = async (
       receiptUrl: file.path,
     };
   } catch (error) {
-    return { error: "Reciept scanning  service unavailable" };
+    return { error: "Receipt scanning service unavailable" };
   }
 };

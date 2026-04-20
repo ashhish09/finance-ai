@@ -13,13 +13,9 @@ export const processReportJob = async () => {
   let processedCount = 0;
   let failedCount = 0;
 
-  //Today july 1, then run report for -> june 1 - 30 
-//Get Last Month because this will run on the first of the month
+  // Last month range
   const from = startOfMonth(subMonths(now, 1));
   const to = endOfMonth(subMonths(now, 1));
-
-  // const from = "2025-04-01T23:00:00.000Z";
-  // const to = "2025-04-T23:00:00.000Z";
 
   try {
     const reportSettingCursor = ReportSettingModel.find({
@@ -29,23 +25,27 @@ export const processReportJob = async () => {
       .populate<{ userId: UserDocument }>("userId")
       .cursor();
 
-    console.log("Running report ");
+    console.log("Running report job");
 
     for await (const setting of reportSettingCursor) {
       const user = setting.userId as UserDocument;
+
       if (!user) {
         console.log(`User not found for setting: ${setting._id}`);
         continue;
       }
 
+      const userId = user._id.toString(); // ✅ FIX
+
       const session = await mongoose.startSession();
 
       try {
-        const report = await generateReportService(user.id, from, to);
+        const report = await generateReportService(userId, from, to);
 
-        console.log(report, "resport data");
+        console.log(report, "report data");
 
         let emailSent = false;
+
         if (report) {
           try {
             await sendReportEmail({
@@ -62,84 +62,81 @@ export const processReportJob = async () => {
               },
               frequency: setting.frequency!,
             });
+
             emailSent = true;
           } catch (error) {
-            console.log(`Email failed for ${user.id}`);
+            console.log(`Email failed for ${userId}`);
           }
         }
 
-        await session.withTransaction(
-          async () => {
-            const bulkReports: any[] = [];
-            const bulkSettings: any[] = [];
+        await session.withTransaction(async () => {
+          const bulkReports: any[] = [];
+          const bulkSettings: any[] = [];
 
-            if (report && emailSent) {
-              bulkReports.push({
-                insertOne: {
-                  document: {
-                    userId: user.id,
-                    sentDate: now,
-                    period: report.period,
-                    status: ReportStatusEnum.SENT,
-                    createdAt: now,
+          if (report && emailSent) {
+            bulkReports.push({
+              insertOne: {
+                document: {
+                  userId: userId, // ✅ FIX
+                  sentDate: now,
+                  period: report.period,
+                  status: ReportStatusEnum.SENT,
+                  createdAt: now,
+                  updatedAt: now,
+                },
+              },
+            });
+
+            bulkSettings.push({
+              updateOne: {
+                filter: { _id: setting._id },
+                update: {
+                  $set: {
+                    lastSentDate: now,
+                    nextReportDate: calulateNextReportDate(now),
                     updatedAt: now,
                   },
                 },
-              });
-
-              bulkSettings.push({
-                updateOne: {
-                  filter: { _id: setting._id },
-                  update: {
-                    $set: {
-                      lastSentDate: now,
-                      nextReportDate: calulateNextReportDate(now),
-                      updatedAt: now,
-                    },
-                  },
+              },
+            });
+          } else {
+            bulkReports.push({
+              insertOne: {
+                document: {
+                  userId: userId, // ✅ FIX
+                  sentDate: now,
+                  period:
+                    report?.period ||
+                    `${format(from, "MMMM d")}–${format(to, "d, yyyy")}`,
+                  status: report
+                    ? ReportStatusEnum.FAILED
+                    : ReportStatusEnum.NO_ACTIVITY,
+                  createdAt: now,
+                  updatedAt: now,
                 },
-              });
-            } else {
-              bulkReports.push({
-                insertOne: {
-                  document: {
-                    userId: user.id,
-                    sentDate: now,
-                    period:
-                      report?.period ||
-                      `${format(from, "MMMM d")}–${format(to, "d, yyyy")}`,
-                    status: report
-                      ? ReportStatusEnum.FAILED
-                      : ReportStatusEnum.NO_ACTIVITY,
-                    createdAt: now,
+              },
+            });
+
+            bulkSettings.push({
+              updateOne: {
+                filter: { _id: setting._id },
+                update: {
+                  $set: {
+                    // ⚠️ keep null only if schema allows it
+                    lastSentDate: null,
+                    nextReportDate: calulateNextReportDate(now),
                     updatedAt: now,
                   },
                 },
-              });
-
-              bulkSettings.push({
-                updateOne: {
-                  filter: { _id: setting._id },
-                  update: {
-                    $set: {
-                      lastSentDate: null,
-                      nextReportDate: calulateNextReportDate(now),
-                      updatedAt: now,
-                    },
-                  },
-                },
-              });
-            }
-
-            await Promise.all([
-              ReportModel.bulkWrite(bulkReports, { ordered: false }),
-              ReportSettingModel.bulkWrite(bulkSettings, { ordered: false }),
-            ]);
-          },
-          {
-            maxCommitTimeMS: 10000,
+              },
+            });
           }
-        );
+
+          await Promise.all([
+            ReportModel.bulkWrite(bulkReports, { ordered: false }),
+            ReportSettingModel.bulkWrite(bulkSettings, { ordered: false }),
+          ]);
+        });
 
         processedCount++;
       } catch (error) {
@@ -150,7 +147,7 @@ export const processReportJob = async () => {
       }
     }
 
-    console.log(`✅Processed: ${processedCount} report`);
+    console.log(`✅ Processed: ${processedCount} report`);
     console.log(`❌ Failed: ${failedCount} report`);
 
     return {
@@ -160,6 +157,7 @@ export const processReportJob = async () => {
     };
   } catch (error) {
     console.error("Error processing reports", error);
+
     return {
       success: false,
       error: "Report process failed",

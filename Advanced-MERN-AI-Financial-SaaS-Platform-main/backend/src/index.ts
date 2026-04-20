@@ -19,7 +19,8 @@ import { getDateRange } from "./utils/date";
 import analyticsRoutes from "./routes/analytics.route";
 import airouter from "./routes/ai.route";
 import morgan from "morgan";
-
+// import dns from "dns";
+// dns.setDefaultResultOrder("ipv4first");
 const app = express();
 const BASE_PATH = Env.BASE_PATH;
 
