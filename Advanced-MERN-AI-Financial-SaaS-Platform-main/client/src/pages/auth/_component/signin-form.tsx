@@ -59,12 +59,12 @@ const SignInForm = ({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={cn("flex flex-col gap-6 text-[#00C957]", className)}
+        className={cn("flex flex-col gap-6", className)}
         {...props}
       >
         <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-2xl font-bold text-[#00C957]">Login to your account</h1>
-          <p className="text-balance text-sm text-[#00C957]/70">
+          <p className="text-balance text-sm text-white/60">
             Enter your email below to login to your account
           </p>
         </div>
@@ -78,7 +78,7 @@ const SignInForm = ({
                   <FormLabel className="!font-normal text-[#00C957]">Email</FormLabel>
                   <FormControl>
                     <Input
-                      className="text-[#00C957] placeholder:text-[#00C957]/50"
+                      className="text-white placeholder:text-white/30 border-white/10 bg-white/5"
                       placeholder="m@example.com"
                       {...field}
                     />
@@ -97,7 +97,7 @@ const SignInForm = ({
                   <FormLabel className="!font-normal text-[#00C957]">Password</FormLabel>
                   <FormControl>
                     <Input
-                      className="text-[#00C957] placeholder:text-[#00C957]/50"
+                      className="text-white placeholder:text-white/30 border-white/10 bg-white/5"
                       placeholder="*******"
                       type="password"
                       {...field}
@@ -108,12 +108,16 @@ const SignInForm = ({
               )}
             />
           </div>
-          <Button disabled={isLoading} type="submit" className="w-full">
+          <Button
+            disabled={isLoading}
+            type="submit"
+            className="w-full bg-[#00C957] hover:bg-[#00b34d] text-black font-semibold"
+          >
             {isLoading && <Loader className="h-4 w-4 animate-spin" />}
             Login
           </Button>
         </div>
-        <div className="text-center text-sm text-[#00C957]">
+        <div className="text-center text-sm text-white/60">
           Don&apos;t have an account?{" "}
           <Link
             to={AUTH_ROUTES.SIGN_UP}

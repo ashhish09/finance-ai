@@ -51,11 +51,11 @@ const SignUpForm = () => {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-6 text-[#00C957]"
+        className="flex flex-col gap-6"
       >
         <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-2xl font-bold text-[#00C957]">Sign up to Acme Inc.</h1>
-          <p className="text-balance text-sm text-[#00C957]/70">
+          <p className="text-balance text-sm text-white/60">
             Fill information below to sign up
           </p>
         </div>
@@ -68,7 +68,7 @@ const SignUpForm = () => {
                 <FormLabel className="text-[#00C957]">Name</FormLabel>
                 <FormControl>
                   <Input
-                    className="text-[#00C957] placeholder:text-[#00C957]/50"
+                    className="text-white placeholder:text-white/30 border-white/10 bg-white/5"
                     placeholder="John Doe"
                     {...field}
                   />
@@ -85,7 +85,7 @@ const SignUpForm = () => {
                 <FormLabel className="text-[#00C957]">Email</FormLabel>
                 <FormControl>
                   <Input
-                    className="text-[#00C957] placeholder:text-[#00C957]/50"
+                    className="text-white placeholder:text-white/30 border-white/10 bg-white/5"
                     placeholder="m@example.com"
                     {...field}
                   />
@@ -102,7 +102,7 @@ const SignUpForm = () => {
                 <FormLabel className="text-[#00C957]">Password</FormLabel>
                 <FormControl>
                   <Input
-                    className="text-[#00C957] placeholder:text-[#00C957]/50"
+                    className="text-white placeholder:text-white/30 border-white/10 bg-white/5"
                     type="password"
                     {...field}
                   />
@@ -111,12 +111,16 @@ const SignUpForm = () => {
               </FormItem>
             )}
           />
-          <Button disabled={isLoading} type="submit" className="w-full">
+          <Button
+            disabled={isLoading}
+            type="submit"
+            className="w-full bg-[#00C957] hover:bg-[#00b34d] text-black font-semibold"
+          >
             {isLoading && <Loader className="h-4 w-4 animate-spin" />}
             Sign up
           </Button>
         </div>
-        <div className="text-center text-sm text-[#00C957]">
+        <div className="text-center text-sm text-white/60">
           Already have an account?{" "}
           <Link
             to={AUTH_ROUTES.SIGN_IN}
