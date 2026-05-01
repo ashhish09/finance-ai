@@ -1,0 +1,3 @@
+This project is an AI-powered Personal Finance Management System designed to help users efficiently track and manage their financial activities. It allows users to record income and expenses, categorize transactions, set budgets, and define financial goals. The system also provides advanced features such as AI-driven insights, voice command support, and automated monthly reports to enhance user experience.
+
+Additionally, the platform includes modular tools like investment and EMI calculators, along with stock market learning resources, making it a comprehensive solution for personal financial planning. The architecture is designed to be scalable and user-centric, ensuring flexibility for future enhancements.
